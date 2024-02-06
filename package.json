@@ -1,0 +1,17 @@
+{
+  "name": "wtf.buddyworks.uit",
+  "author": {
+    "name": "BUDDYWORKS",
+    "email": "hi@buddyworks.wtf"
+  },
+  "displayName": "BUDDYWORKS UnityPackage Icon Tool",
+  "description": "Patches the export dialogue to allow defining an icon.",
+  "version": "1.0.0",
+  "unity": "2019.4",
+  "gitDependencies": {},
+  "vpmDependencies": {},
+  "legacyFolders": {},
+  "legacyFiles": {},
+  "type": "tool",
+  "hideInEditor": false
+}
