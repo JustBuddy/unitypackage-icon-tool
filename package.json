@@ -6,7 +6,7 @@
   },
   "displayName": "BUDDYWORKS UnityPackage Icon Tool",
   "description": "Patches the export dialogue to allow defining an icon.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "unity": "2019.4",
   "gitDependencies": {},
   "vpmDependencies": {},

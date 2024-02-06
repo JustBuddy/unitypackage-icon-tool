@@ -197,7 +197,7 @@ namespace BUDDYWORKS.UnityPackageIcon
         }
 
         // https://github.com/Unity-Technologies/UnityCsReference/blob/2d4714b26573c9f220da0e266d62f42830c14ad6/Editor/Mono/GUI/PackageExport.cs#L235
-        private static bool Export(dynamic __instance)
+        private static bool Export(EditorWindow __instance)
         {
             if (SelectedIcon == null) return true; // Skip our implementation
 
@@ -207,7 +207,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 // build guid list
                 List<string> guids = new List<string>();
 
-                foreach (object ai in m_ExportPackageItemsField.GetValue(__instance)) // foreach (ExportPackageItem ai in m_ExportPackageItems)
+                foreach (object ai in (Array)m_ExportPackageItemsField.GetValue(__instance)) // foreach (ExportPackageItem ai in m_ExportPackageItems)
                 {
                     if ((int)enabledStatusField.GetValue(ai) > 0)
                     {
