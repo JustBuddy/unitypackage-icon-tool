@@ -1,11 +1,6 @@
 # BUDDYWORKS UnityPackage Icon Tool
 
-Ever wondered how you could fancy up your unitypackages when people open them?
-
-Wonder no more, with this simple tool!
-
-Import the tool into the project you want to export from, and specify the image when you export your package.
-Your icon selection is remembered on every export.
+A patch to the Unity Export window which lets you set an image that is shown when someone is about to import your unitypackage. The selection is remembered across exports of the same project.
 
 **Image Specifications**
 - Low resolution. (should not exceed 128×128, it's small anyway.)
