@@ -35,19 +35,19 @@ using Debug = UnityEngine.Debug;
 namespace BUDDYWORKS.UnityPackageIcon
 {
     [InitializeOnLoad]
-    internal class UI : EditorWindow
+    public class UnityPackageIcon : EditorWindow
     {
-        private static Texture2D _selectedIcon = null;
-        private static Texture2D SelectedIcon { get { return _selectedIcon; } set { UpdateIcon(value); } }
-        private static Harmony Harmony;
-        private static MethodInfo TopAreaMethod;//, ExportPackageMethod;
-        private static FieldInfo m_ExportPackageItemsField, enabledStatusField, guidField;
-        private static bool PatchGUI = false;
-
         private const string PackageName = "wtf.buddyworks.uit";
         private static string IconSavePath = $"Packages/{PackageName}/selectedIcon.txt";
 
-        static UI()
+        private static Texture2D _selectedIcon = null;
+        private static Texture2D SelectedIcon { get { return _selectedIcon; } set { UpdateIcon(value); } }
+        private static Harmony Harmony;
+        private static MethodInfo TopAreaMethod;
+        private static FieldInfo m_ExportPackageItemsField, enabledStatusField, guidField;
+        private static bool PatchGUI = false;
+
+        static UnityPackageIcon()
         {
             if (File.Exists(IconSavePath))
             {
@@ -92,22 +92,6 @@ namespace BUDDYWORKS.UnityPackageIcon
                 return;
             }
 
-            /*var packageUtilityType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PackageUtilityType");
-            if (packageUtilityType == null)
-            {
-                Debug.LogError("[UnityPackage Icon] Failed to find the type UnityEditor.PackageUtility!");
-
-                return;
-            }
-
-            ExportPackageMethod = packageUtilityType.GetMethod("ExportPackage", BindingFlags.Public | BindingFlags.Static);
-            if (ExportPackageMethod == null)
-            {
-                Debug.LogError("[UnityPackage Icon] Failed to find the method UnityEditor.PackageUtility.ExportPackage()!");
-
-                return;
-            }*/
-
             m_ExportPackageItemsField = packageExportType.GetField("m_ExportPackageItems", BindingFlags.NonPublic | BindingFlags.Instance);
             if (m_ExportPackageItemsField == null)
             {
@@ -141,18 +125,16 @@ namespace BUDDYWORKS.UnityPackageIcon
                 return;
             }
 
-            Harmony.Patch(exportMethod, new HarmonyMethod(typeof(UI).GetMethod(nameof(Export), BindingFlags.NonPublic | BindingFlags.Static)));
-            Harmony.Patch(showExportPackageMethod, null, new HarmonyMethod(typeof(UI).GetMethod(nameof(ShowExportPackage), BindingFlags.NonPublic | BindingFlags.Static)));
+            Harmony.Patch(exportMethod, new HarmonyMethod(typeof(UnityPackageIcon).GetMethod(nameof(Export), BindingFlags.NonPublic | BindingFlags.Static)));
+            Harmony.Patch(showExportPackageMethod, null, new HarmonyMethod(typeof(UnityPackageIcon).GetMethod(nameof(ShowExportPackage), BindingFlags.NonPublic | BindingFlags.Static)));
         }
 
         [MenuItem("BUDDYWORKS/Set UnityPackage export icon")]
         private static void Init()
         {
-            UI window = (UI)GetWindow(typeof(UI));
+            UnityPackageIcon window = (UnityPackageIcon)GetWindow(typeof(UnityPackageIcon));
 
             window.titleContent = new GUIContent("UnityPackage Icon");
-
-            //window.maxSize = new Vector2(300, 64);
 
             //window.Show();
             window.ShowModal();
@@ -171,18 +153,33 @@ namespace BUDDYWORKS.UnityPackageIcon
         {
             if (SelectedIcon == icon) return;
 
-            if (icon != null && ImageDetection.GetImageFormat(AssetDatabase.GetAssetPath(icon)) != ImageDetection.ImageFormat.PNG)
+            string path = null;
+            if (icon != null)
             {
-                _selectedIcon = null;
+                path = AssetDatabase.GetAssetPath(icon);
 
-                Debug.LogWarning("[UnityPackage Icon] The icon must be PNG formatted!");
+                if (string.IsNullOrEmpty(path))
+                {
+                    _selectedIcon = null;
 
-                return;
+                    Debug.LogError("[UnityPackage Icon] The path to the icon could not be found!");
+
+                    return;
+                }
+                else if (ImageDetection.GetImageFormat(path) != ImageDetection.ImageFormat.PNG)
+                {
+                    _selectedIcon = null;
+
+                    Debug.LogError("[UnityPackage Icon] The icon must be PNG formatted!");
+
+                    return;
+                }
             }
 
             _selectedIcon = icon;
 
-            File.WriteAllText(IconSavePath, SelectedIcon == null ? string.Empty : AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(SelectedIcon)));
+            string guid = SelectedIcon == null ? string.Empty : AssetDatabase.AssetPathToGUID(path);
+            if (Directory.Exists(Path.GetDirectoryName(IconSavePath))) File.WriteAllText(IconSavePath, guid);
         }
 
         // Prevents printing 4 GUIStyle errors on script domain reload.
@@ -193,13 +190,31 @@ namespace BUDDYWORKS.UnityPackageIcon
 
             PatchGUI = true;
 
-            Harmony.Patch(TopAreaMethod, new HarmonyMethod(typeof(UI).GetMethod(nameof(TopArea), BindingFlags.NonPublic | BindingFlags.Static)));
+            Harmony.Patch(TopAreaMethod, new HarmonyMethod(typeof(UnityPackageIcon).GetMethod(nameof(TopArea), BindingFlags.NonPublic | BindingFlags.Static)));
         }
 
         // https://github.com/Unity-Technologies/UnityCsReference/blob/2d4714b26573c9f220da0e266d62f42830c14ad6/Editor/Mono/GUI/PackageExport.cs#L235
         private static bool Export(EditorWindow __instance)
         {
-            if (SelectedIcon == null) return true; // Skip our implementation
+            if (SelectedIcon == null) return true; // No icon, skip our implementation
+
+            string iconPath = AssetDatabase.GetAssetPath(SelectedIcon);
+            if (string.IsNullOrEmpty(iconPath))
+            {
+                Debug.LogWarning("[UnityPackage Icon] The selected icon's path cannot be found, exporting without icon!");
+
+                SelectedIcon = null;
+
+                return true;
+            }
+            else if (ImageDetection.GetImageFormat(iconPath) != ImageDetection.ImageFormat.PNG)
+            {
+                Debug.LogWarning("[UnityPackage Icon] The selected icon was replaced with a non-PNG file, exporting without icon!");
+
+                SelectedIcon = null;
+
+                return true;
+            }
 
             string fileName = EditorUtility.SaveFilePanel("Export package ...", "", "", "unitypackage");
             if (fileName != "")
@@ -215,74 +230,13 @@ namespace BUDDYWORKS.UnityPackageIcon
                     }
                 }
 
-                string iconPath = AssetDatabase.GetAssetPath(SelectedIcon);
-                if (ImageDetection.GetImageFormat(iconPath) != ImageDetection.ImageFormat.PNG)
-                {
-                    Debug.LogError("[UnityPackage Icon] The selected icon was replaced with a non-PNG file!");
-
-                    return false;
-                }
-
-                //ExportPackageMethod.Invoke(null, new object[] { guids.ToArray(), gzipTempPath }); // PackageUtility.ExportPackage(guids.ToArray(), fileName);
-
-                Stream unityPackage;
                 try
                 {
-                    unityPackage = new GZipOutputStream(File.Open(fileName, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
-                    {
-                        FileName = "archtemp.tar" // Unity default
-                    };
+                    ExportPackage(fileName, guids, iconPath);
                 }
-                catch
+                catch (Exception e)
                 {
-                    Debug.LogError($"[UnityPackage Icon] Failed to create or overwrite destination file at \"{fileName}\"!");
-
-                    return false;
-                }
-
-                // Write the package ourselves
-                using (TarOutputStream tarOutput = new TarOutputStream(unityPackage, Encoding.ASCII))
-                {
-                    TarEntry iconEntry = TarEntry.CreateEntryFromFile(iconPath);
-                    iconEntry.TarHeader.Name = ".icon.png";
-
-                    tarOutput.WriteEntry(iconEntry);
-
-                    foreach (string guid in guids)
-                    {
-                        string path = AssetDatabase.GUIDToAssetPath(guid);
-                        if (string.IsNullOrEmpty(path)) continue;
-
-                        bool isFile = File.Exists(path);
-                        if (!isFile && !Directory.Exists(path)) continue;
-
-                        string metaPath = $"{path}.meta";
-                        if (!File.Exists(metaPath)) continue;
-
-                        if (isFile) // Write asset data
-                        {
-                            TarEntry entry = TarEntry.CreateEntryFromFile(path);
-                            entry.TarHeader.Name = $"{guid}/asset";
-                            tarOutput.WriteEntry(entry);
-                        }
-
-                        TarEntry metaEntry = TarEntry.CreateEntryFromFile(metaPath); // Write metadata
-                        metaEntry.TarHeader.Name = $"{guid}/asset.meta";
-                        tarOutput.WriteEntry(metaEntry);
-
-                        tarOutput.WriteEntry(TarEntry.CreateTarEntry($"{guid}/pathname"), Encoding.Default.GetBytes(path)); // Write path
-                    }
-
-                    tarOutput.Flush();
-                }
-
-                try
-                {
-                    ShowSelectedInExplorer.FileOrFolder(Path.GetFullPath(fileName));
-                }
-                catch
-                {
-                    Debug.LogError("[UnityPackage Icon] Failed to display exported package in explorer!");
+                    Debug.LogError($"[UnityPackage Icon] {e.Message}");
                 }
 
                 __instance.Close();
@@ -292,38 +246,104 @@ namespace BUDDYWORKS.UnityPackageIcon
             return false;
         }
 
+        /// <summary>
+        /// Exports a UnityPackage, optionally with an icon.
+        /// </summary>
+        /// <param name="path">UnityPackage destination path</param>
+        /// <param name="guids">A collection of asset GUID strings</param>
+        /// <param name="iconPath">Path to the icon file</param>
+        /// <param name="showFile">Display the exported package in explorer upon completion</param>
+        /// <exception cref="IOException">Thrown when the destination path cannot be accessed or written to.</exception>
+        /// <exception cref="Exception">Thrown when <paramref name="showFile"/> is true and the exported package failed to display in explorer.</exception>
+        public static void ExportPackage(string path, IEnumerable<string> guids, string iconPath = null, bool showFile = true)
+        {
+            Stream unityPackage;
+            try
+            {
+                unityPackage = new GZipOutputStream(File.Open(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite | FileShare.Delete))
+                {
+                    FileName = "archtemp.tar" // Unity default
+                };
+            }
+            catch
+            {
+                throw new IOException($"Failed to create or overwrite destination file \"{path}\"!");
+            }
+
+            // Write the package ourselves
+            using (TarOutputStream tarOutput = new TarOutputStream(unityPackage, Encoding.ASCII))
+            {
+                if (!string.IsNullOrEmpty(iconPath))
+                {
+                    TarEntry iconEntry = TarEntry.CreateEntryFromFile(iconPath); // Write icon
+                    iconEntry.TarHeader.Name = ".icon.png";
+                    tarOutput.WriteEntry(iconEntry);
+                }
+
+                foreach (string guid in guids)
+                {
+                    string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    if (string.IsNullOrEmpty(assetPath)) continue;
+
+                    bool isFile = File.Exists(assetPath);
+                    if (!isFile && !Directory.Exists(assetPath)) continue;
+
+                    string metaPath = $"{assetPath}.meta";
+                    if (!File.Exists(metaPath)) continue;
+
+                    if (isFile) // Write asset data
+                    {
+                        TarEntry entry = TarEntry.CreateEntryFromFile(assetPath);
+                        entry.TarHeader.Name = $"{guid}/asset";
+                        tarOutput.WriteEntry(entry);
+                    }
+
+                    TarEntry metaEntry = TarEntry.CreateEntryFromFile(metaPath); // Write metadata
+                    metaEntry.TarHeader.Name = $"{guid}/asset.meta";
+                    tarOutput.WriteEntry(metaEntry);
+
+                    tarOutput.WriteEntry(TarEntry.CreateTarEntry($"{guid}/pathname"), Encoding.Default.GetBytes(assetPath)); // Write path
+                }
+
+                tarOutput.Flush();
+            }
+
+            try
+            {
+                ShowSelectedInExplorer.FileOrFolder(Path.GetFullPath(path));
+            }
+            catch
+            {
+                throw new Exception("Failed to display exported package in explorer!");
+            }
+        }
+
         // https://github.com/Unity-Technologies/UnityCsReference/blob/2d4714b26573c9f220da0e266d62f42830c14ad6/Editor/Mono/GUI/PackageExport.cs#L139
         private static bool TopArea(EditorWindow __instance)
         {
-            if (!PatchGUI) return true;
-
             float totalTopHeight = 84f;//53f;
             Rect r = GUILayoutUtility.GetRect(__instance.position.width, totalTopHeight);
 
             // Background
-            GUI.Label(r, GUIContent.none, Styles.PackageExportTopBarBg);
+            GUI.Label(r, GUIContent.none, PackageExportStyles.topBarBg);
 
             // Package icon
-            Texture2D icon = (Texture2D)EditorGUI.ObjectField(new Rect(r.x + 10f, r.yMin + 10, 64, 64), GUIContent.none, SelectedIcon, typeof(Texture2D), false);
-            if (SelectedIcon != icon && icon != null && ImageDetection.GetImageFormat(AssetDatabase.GetAssetPath(icon)) == ImageDetection.ImageFormat.PNG)
-            {
-                SelectedIcon = icon;
-            }
+            SelectedIcon = (Texture2D)EditorGUI.ObjectField(new Rect(r.x + 10f, r.yMin + 10, 64, 64), GUIContent.none, SelectedIcon, typeof(Texture2D), false);
 
             // Header
             Rect titleRect = new Rect(r.x + 64 + 20f, r.yMin, r.width, r.height);
-            GUI.Label(titleRect, Styles.PackageExportHeader, Styles.PackageExportTitle);
+            GUI.Label(titleRect, PackageExportStyles.header, PackageExportStyles.title);
 
             return false;
         }
 
-        private static class Styles
+        private static class PackageExportStyles
         {
-            public static GUIStyle PackageExportTitle = "LargeBoldLabel";
-            public static GUIStyle PackageExportTopBarBg = "OT TopBar";
-            public static GUIContent PackageExportHeader = EditorGUIUtility.TrTextContent("Items to Export");
+            public static GUIStyle title = "LargeBoldLabel";
+            public static GUIStyle topBarBg = "OT TopBar";
+            public static GUIContent header = EditorGUIUtility.TrTextContent("Items to Export");
 
-            static Styles()
+            static PackageExportStyles()
             {
                 Type stylesType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PackageExport+Styles");
                 if (stylesType == null)
@@ -333,10 +353,10 @@ namespace BUDDYWORKS.UnityPackageIcon
                     return;
                 }
 
-                /*FieldInfo titleField = stylesType.GetField("title", BindingFlags.Public | BindingFlags.Static);
+                FieldInfo titleField = stylesType.GetField("title", BindingFlags.Public | BindingFlags.Static);
                 if (titleField != null)
                 {
-                    PackageExportTitle = (GUIStyle)titleField.GetValue(null);
+                    title = (GUIStyle)titleField.GetValue(null);
                 }
                 else
                 {
@@ -346,17 +366,17 @@ namespace BUDDYWORKS.UnityPackageIcon
                 FieldInfo topBarBgField = stylesType.GetField("topBarBg", BindingFlags.Public | BindingFlags.Static);
                 if (topBarBgField != null)
                 {
-                    PackageExportTopBarBg = (GUIStyle)topBarBgField.GetValue(null);
+                    topBarBg = (GUIStyle)topBarBgField.GetValue(null);
                 }
                 else
                 {
                     Debug.LogWarning("[UnityPackage Icon] Failed to find the field UnityEditor.PackageExport.Styles.topBarBgField!");
-                }*/
+                }
 
                 FieldInfo headerField = stylesType.GetField("header", BindingFlags.Public | BindingFlags.Static);
                 if (headerField != null)
                 {
-                    PackageExportHeader = (GUIContent)headerField.GetValue(null);
+                    header = (GUIContent)headerField.GetValue(null);
                 }
                 else
                 {
