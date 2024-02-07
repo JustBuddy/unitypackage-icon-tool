@@ -16,6 +16,8 @@ Your icon selection is remembered on every export.
 Tool created by [Dor](https://store.dor.dev) for BUDDYWORKS.
 The tool's source code is published under GNU Lesser General Public Licence v3.0 and can be found on [GitHub](https://github.com/JustBuddy/unitypackage-icon-tool).
 
+Uses Harmony and SharpZipLib
+
 Enjoy ❤️
 
 **Download**
