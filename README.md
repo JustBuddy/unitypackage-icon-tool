@@ -5,9 +5,9 @@ A patch to the Unity Export window which lets you set an image that is shown whe
 **Image Specifications**
 - Low resolution. (should not exceed 128×128, it's small anyway.)
 - Image should be squared, else it will be squished.
+- Must be a .png
 
 **Credits**
-
 Tool created by [Dor](https://store.dor.dev) for BUDDYWORKS.
 The tool's source code is published under GNU Lesser General Public Licence v3.0 and can be found on [GitHub](https://github.com/JustBuddy/unitypackage-icon-tool). Uses Harmony and SharpZipLib.
 
