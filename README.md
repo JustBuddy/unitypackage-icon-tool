@@ -9,7 +9,7 @@ A patch to the Unity Export window which lets you set an image that is shown whe
 
 **Credits**  
 Tool created by [Dor](https://store.dor.dev) for [BUDDYWORKS](https://buddyworks.wtf).  
-The tool's source code is published under [GNU Lesser General Public Licence v3.0]([https://github.com/JustBuddy/unitypackage-icon-tool/tree/main?tab=LGPL-3.0-1-ov-file](https://github.com/JustBuddy/unitypackage-icon-tool/blob/main/LICENSE)).  
+The tool's source code is published under [GNU Lesser General Public Licence v3.0](https://github.com/JustBuddy/unitypackage-icon-tool/blob/main/LICENSE).  
 Uses Harmony and SharpZipLib.
 Official support for Unity 2019 and 2022, might work with other versions.  
 
