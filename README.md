@@ -7,9 +7,11 @@ A patch to the Unity Export window which lets you set an image that is shown whe
 - Image should be squared, else it will be squished.
 - Must be a .png
 
-**Credits**
-Tool created by [Dor](https://store.dor.dev) for BUDDYWORKS.
-The tool's source code is published under GNU Lesser General Public Licence v3.0 and can be found on [GitHub](https://github.com/JustBuddy/unitypackage-icon-tool). Uses Harmony and SharpZipLib.
+**Credits**  
+Tool created by [Dor](https://store.dor.dev) for BUDDYWORKS.  
+The tool's source code is published under GNU Lesser General Public Licence v3.0 and can be found on [GitHub](https://github.com/JustBuddy/unitypackage-icon-tool).  
+Uses Harmony and SharpZipLib.
+Official support for Unity 2019 and 2022, might work with other versions.  
 
 Enjoy ❤️
 
