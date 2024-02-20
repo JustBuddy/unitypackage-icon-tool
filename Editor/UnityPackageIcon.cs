@@ -129,7 +129,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             Harmony.Patch(showExportPackageMethod, null, new HarmonyMethod(typeof(UnityPackageIcon).GetMethod(nameof(ShowExportPackage), BindingFlags.NonPublic | BindingFlags.Static)));
         }
 
-        [MenuItem("BUDDYWORKS/Set UnityPackage export icon")]
+        [MenuItem("BUDDYWORKS/Set .unitypackage icon...")]
         private static void Init()
         {
             UnityPackageIcon window = (UnityPackageIcon)GetWindow(typeof(UnityPackageIcon));
