@@ -49,14 +49,14 @@ namespace BUDDYWORKS.UnityPackageIcon
 
         static UnityPackageIcon()
         {
-                if (File.Exists(IconSavePath))
+            if (File.Exists(IconSavePath))
+            {
+                string guid = File.ReadAllText(IconSavePath);
+                if (!string.IsNullOrEmpty(guid))
                 {
-                    string guid = File.ReadAllText(IconSavePath);
-                    if (!string.IsNullOrEmpty(guid))
-                    {
-                        SelectedIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(guid));
-                    }
+                    SelectedIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(guid));
                 }
+            }
 
             Harmony = new Harmony(PackageName);
 
