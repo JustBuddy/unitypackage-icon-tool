@@ -132,8 +132,7 @@ namespace BUDDYWORKS.UnityPackageIcon
         [MenuItem("BUDDYWORKS/Set .unitypackage Icon...")]
         public static void ShowWindow()
         {
-            UnityPackageIcon window = (UnityPackageIcon)GetWindow(typeof(UnityPackageIcon));
-            window.titleContent = new GUIContent("UnityPackage Icon Tool");
+            GetWindow<UnityPackageIcon>(true, "UnityPackage Icon Tool");
         }
 
 
