@@ -130,13 +130,12 @@ namespace BUDDYWORKS.UnityPackageIcon
         }
 
         [MenuItem("BUDDYWORKS/Set .unitypackage Icon...")]
-        public static void ShowWindow()
+        private static void ShowWindow()
         {
             GetWindow<UnityPackageIcon>(true, "UnityPackage Icon Tool");
         }
 
-
-        void OnGUI()
+        private void OnGUI()
         {
             EditorGUILayout.Space();
             using (new EditorGUILayout.HorizontalScope())
@@ -153,7 +152,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             GUILayout.Label("- Source image should be small in resolution. (128x128px recommended)");
             GUILayout.Label("Note: Image selection is remembered for this project.", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
-            
+
             GUILayout.Label("UnityPackage Icon Tool - Made by dor_ for BUDDYWORKS", EditorStyles.boldLabel);
             Rect labelRect = GUILayoutUtility.GetLastRect();
             if (Event.current.type == EventType.MouseDown && labelRect.Contains(Event.current.mousePosition))
