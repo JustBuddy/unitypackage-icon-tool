@@ -38,7 +38,7 @@ namespace BUDDYWORKS.UnityPackageIcon
     public class UnityPackageIcon : EditorWindow
     {
         private const string PackageName = "wtf.buddyworks.uit";
-        private static string IconSavePath = $"Packages/{PackageName}/selectedIcon.txt";
+        private static string IconSavePath = $"Assets/UIT_ExportPackageIcon.txt";
 
         private static Texture2D _selectedIcon = null;
         private static Texture2D SelectedIcon { get { return _selectedIcon; } set { UpdateIcon(value); } }
@@ -63,7 +63,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             Type packageExportType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PackageExport");
             if (packageExportType == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the type UnityEditor.PackageExport!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the type UnityEditor.PackageExport!");
 
                 return;
             }
@@ -71,7 +71,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             MethodInfo exportMethod = packageExportType.GetMethod("Export", BindingFlags.NonPublic | BindingFlags.Instance);
             if (exportMethod == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the method UnityEditor.PackageExport.Export()!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the method UnityEditor.PackageExport.Export()!");
 
                 return;
             }
@@ -79,7 +79,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             TopAreaMethod = packageExportType.GetMethod("TopArea", BindingFlags.NonPublic | BindingFlags.Instance);
             if (TopAreaMethod == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the method UnityEditor.PackageExport.TopArea()!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the method UnityEditor.PackageExport.TopArea()!");
 
                 return;
             }
@@ -87,7 +87,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             MethodInfo showExportPackageMethod = packageExportType.GetMethod("ShowExportPackage", BindingFlags.NonPublic | BindingFlags.Static);
             if (showExportPackageMethod == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the method UnityEditor.PackageExport.ShowExportPackage()!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the method UnityEditor.PackageExport.ShowExportPackage()!");
 
                 return;
             }
@@ -95,7 +95,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             m_ExportPackageItemsField = packageExportType.GetField("m_ExportPackageItems", BindingFlags.NonPublic | BindingFlags.Instance);
             if (m_ExportPackageItemsField == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the field UnityEditor.PackageExport.m_ExportPackageItems!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the field UnityEditor.PackageExport.m_ExportPackageItems!");
 
                 return;
             }
@@ -104,7 +104,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             Type exportPackageItemType = typeof(EditorWindow).Assembly.GetType("UnityEditor.ExportPackageItem");
             if (exportPackageItemType == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the type UnityEditor.ExportPackageItem!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the type UnityEditor.ExportPackageItem!");
 
                 return;
             }
@@ -112,7 +112,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             enabledStatusField = exportPackageItemType.GetField("enabledStatus", BindingFlags.Public | BindingFlags.Instance);
             if (enabledStatusField == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the field UnityEditor.ExportPackageItem.enabledStatusField!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the field UnityEditor.ExportPackageItem.enabledStatusField!");
 
                 return;
             }
@@ -120,7 +120,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             guidField = exportPackageItemType.GetField("guid", BindingFlags.Public | BindingFlags.Instance);
             if (guidField == null)
             {
-                Debug.LogError("[UnityPackage Icon] Failed to find the field UnityEditor.ExportPackageItem.guid!");
+                Debug.LogError("[UnityPackage Icon Tool] Failed to find the field UnityEditor.ExportPackageItem.guid!");
 
                 return;
             }
@@ -129,23 +129,35 @@ namespace BUDDYWORKS.UnityPackageIcon
             Harmony.Patch(showExportPackageMethod, null, new HarmonyMethod(typeof(UnityPackageIcon).GetMethod(nameof(ShowExportPackage), BindingFlags.NonPublic | BindingFlags.Static)));
         }
 
-        [MenuItem("BUDDYWORKS/Set .unitypackage icon...")]
-        private static void Init()
+        [MenuItem("BUDDYWORKS/Set .unitypackage Icon...")]
+        private static void ShowWindow()
         {
-            UnityPackageIcon window = (UnityPackageIcon)GetWindow(typeof(UnityPackageIcon));
-
-            window.titleContent = new GUIContent("UnityPackage Icon");
-
-            //window.Show();
-            window.ShowModal();
+            GetWindow<UnityPackageIcon>(true, "UnityPackage Icon Tool");
         }
 
         private void OnGUI()
         {
+            EditorGUILayout.Space();
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.LabelField("Package icon:", EditorStyles.boldLabel, GUILayout.Width(84), GUILayout.Height(64));
+                EditorGUILayout.LabelField("Select package icon:", EditorStyles.boldLabel, GUILayout.Width(128), GUILayout.Height(64));
                 SelectedIcon = (Texture2D)EditorGUILayout.ObjectField(GUIContent.none, SelectedIcon, typeof(Texture2D), false, GUILayout.Height(64), GUILayout.Width(64));
+            }
+            EditorGUILayout.Space();
+            Rect r = EditorGUILayout.GetControlRect(false, 1, new GUIStyle() { margin = new RectOffset(0, 0, 4, 4) });
+            EditorGUI.DrawRect(r, Color.gray);
+            GUILayout.Label("Icons must meet the following requirements:", EditorStyles.largeLabel);
+            GUILayout.Label("- Must be a .png");
+            GUILayout.Label("- Should be squared (1:1)");
+            GUILayout.Label("- Source image should be small in resolution. (128x128px recommended)");
+            GUILayout.Label("Note: Image selection is remembered for this project.", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+
+            GUILayout.Label("UnityPackage Icon Tool - Made by dor_ for BUDDYWORKS", EditorStyles.boldLabel);
+            Rect labelRect = GUILayoutUtility.GetLastRect();
+            if (Event.current.type == EventType.MouseDown && labelRect.Contains(Event.current.mousePosition))
+            {
+                Application.OpenURL("https://github.com/JustBuddy/unitypackage-icon-tool");
             }
         }
 
@@ -162,7 +174,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 {
                     _selectedIcon = null;
 
-                    Debug.LogError("[UnityPackage Icon] The path to the icon could not be found!");
+                    Debug.LogError("[UnityPackage Icon Tool] The path to the icon could not be found!");
 
                     return;
                 }
@@ -170,7 +182,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 {
                     _selectedIcon = null;
 
-                    Debug.LogError("[UnityPackage Icon] The icon must be PNG formatted!");
+                    Debug.LogError("[UnityPackage Icon Tool] The icon must be PNG formatted!");
 
                     return;
                 }
@@ -201,7 +213,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             string iconPath = AssetDatabase.GetAssetPath(SelectedIcon);
             if (string.IsNullOrEmpty(iconPath))
             {
-                Debug.LogWarning("[UnityPackage Icon] The selected icon's path cannot be found, exporting without icon!");
+                Debug.LogWarning("[UnityPackage Icon Tool] The selected icon's path cannot be found, exporting without icon!");
 
                 SelectedIcon = null;
 
@@ -209,7 +221,7 @@ namespace BUDDYWORKS.UnityPackageIcon
             }
             else if (ImageDetection.GetImageFormat(iconPath) != ImageDetection.ImageFormat.PNG)
             {
-                Debug.LogWarning("[UnityPackage Icon] The selected icon was replaced with a non-PNG file, exporting without icon!");
+                Debug.LogWarning("[UnityPackage Icon Tool] The selected icon was replaced with a non-PNG file, exporting without icon!");
 
                 SelectedIcon = null;
 
@@ -236,7 +248,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[UnityPackage Icon] {e.Message}");
+                    Debug.LogError($"[UnityPackage Icon Tool] {e.Message}");
                 }
 
                 __instance.Close();
@@ -348,7 +360,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 Type stylesType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PackageExport+Styles");
                 if (stylesType == null)
                 {
-                    Debug.LogError("[UnityPackage Icon] Failed to find the type UnityEditor.PackageExport.Styles!");
+                    Debug.LogError("[UnityPackage Icon Tool] Failed to find the type UnityEditor.PackageExport.Styles!");
 
                     return;
                 }
@@ -360,7 +372,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 }
                 else
                 {
-                    Debug.LogWarning("[UnityPackage Icon] Failed to find the field UnityEditor.PackageExport.Styles.title!");
+                    Debug.LogWarning("[UnityPackage Icon Tool] Failed to find the field UnityEditor.PackageExport.Styles.title!");
                 }
 
                 FieldInfo topBarBgField = stylesType.GetField("topBarBg", BindingFlags.Public | BindingFlags.Static);
@@ -370,7 +382,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 }
                 else
                 {
-                    Debug.LogWarning("[UnityPackage Icon] Failed to find the field UnityEditor.PackageExport.Styles.topBarBgField!");
+                    Debug.LogWarning("[UnityPackage Icon Tool] Failed to find the field UnityEditor.PackageExport.Styles.topBarBgField!");
                 }
 
                 FieldInfo headerField = stylesType.GetField("header", BindingFlags.Public | BindingFlags.Static);
@@ -380,7 +392,7 @@ namespace BUDDYWORKS.UnityPackageIcon
                 }
                 else
                 {
-                    Debug.LogWarning("[UnityPackage Icon] Failed to find the field UnityEditor.PackageExport.Styles.header!");
+                    Debug.LogWarning("[UnityPackage Icon Tool] Failed to find the field UnityEditor.PackageExport.Styles.header!");
                 }
             }
         }
