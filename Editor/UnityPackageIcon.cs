@@ -145,39 +145,22 @@ namespace BUDDYWORKS.UnityPackageIcon
                 EditorGUILayout.LabelField("Select package icon:", EditorStyles.boldLabel, GUILayout.Width(128), GUILayout.Height(64));
                 SelectedIcon = (Texture2D)EditorGUILayout.ObjectField(GUIContent.none, SelectedIcon, typeof(Texture2D), false, GUILayout.Height(64), GUILayout.Width(64));
             }
-                EditorGUILayout.Space();
-                DrawHorizontalLine();
-                GUILayout.Label("Icons must meet the following requirements:", EditorStyles.largeLabel);
-                GUILayout.Label("- Must be a .png");
-                GUILayout.Label("- Should be squared (1:1)");
-                GUILayout.Label("- Source image should be small in resolution. (128x128px recommended)");
-                GUILayout.Label("Note: Image selection is remembered for this project.", EditorStyles.boldLabel);
-                GUILayout.FlexibleSpace();
-                GUILayout.Label("UnityPackage Icon Tool - Made by dor_ for BUDDYWORKS", EditorStyles.boldLabel);
-                    Rect labelRect = GUILayoutUtility.GetLastRect();
-
-                    if (Event.current.type == EventType.MouseDown && labelRect.Contains(Event.current.mousePosition))
-                    {
-                        OpenWebsite("https://github.com/JustBuddy/unitypackage-icon-tool");
-                    }
-        }
-
-        private void OpenWebsite(string url)
-        {
-            Application.OpenURL(url);
-        }
-
-        private void DrawHorizontalLine()
-        {
-            GUIStyle horizontalLine = new GUIStyle();
-            horizontalLine.normal.background = EditorGUIUtility.whiteTexture;
-            horizontalLine.margin = new RectOffset(0, 0, 4, 4);
-            horizontalLine.fixedHeight = 1;
-
-            Color oldColor = GUI.color;
-            GUI.color = Color.gray;
-            GUILayout.Box(GUIContent.none, horizontalLine);
-            GUI.color = oldColor;
+            EditorGUILayout.Space();
+            Rect r = EditorGUILayout.GetControlRect(false, 1, new GUIStyle() { margin = new RectOffset(0, 0, 4, 4) });
+            EditorGUI.DrawRect(r, Color.gray);
+            GUILayout.Label("Icons must meet the following requirements:", EditorStyles.largeLabel);
+            GUILayout.Label("- Must be a .png");
+            GUILayout.Label("- Should be squared (1:1)");
+            GUILayout.Label("- Source image should be small in resolution. (128x128px recommended)");
+            GUILayout.Label("Note: Image selection is remembered for this project.", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            
+            GUILayout.Label("UnityPackage Icon Tool - Made by dor_ for BUDDYWORKS", EditorStyles.boldLabel);
+            Rect labelRect = GUILayoutUtility.GetLastRect();
+            if (Event.current.type == EventType.MouseDown && labelRect.Contains(Event.current.mousePosition))
+            {
+                Application.OpenURL("https://github.com/JustBuddy/unitypackage-icon-tool");
+            }
         }
 
         private static void UpdateIcon(Texture2D icon)
